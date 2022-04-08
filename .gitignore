@@ -1,3 +1,4 @@
+# CMake .gitignore from GitHub
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
@@ -9,4 +10,10 @@ install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
 _deps
+
+# Lib and binaries
 v4l2-capture
+libv4l2-capture-lib.a
+
+# clangd cache
+.cache

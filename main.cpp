@@ -1,3 +1,3 @@
-#include <iostream>
+#include "v4l2_capture.hpp"
 
-int main() { std::cout << "Hello World!\n"; }
+int main() { v4l2Capture::say_hello(); }
