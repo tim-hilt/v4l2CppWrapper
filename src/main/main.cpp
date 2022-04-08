@@ -1,6 +1,6 @@
 #include <vector>
 
-#include "v4l2_capture.hpp"
+#include <v4l2_capture.hpp>
 
 int main() {
   int test = 5;
