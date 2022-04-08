@@ -10,6 +10,12 @@ install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
 _deps
+.cmake
+
+# Ninja
+.ninja_deps
+.ninja_log
+build.ninja
 
 # Lib and binaries
 v4l2-capture
