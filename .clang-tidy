@@ -1,5 +1,5 @@
 ---
-Checks:          'clang-diagnostic-*,clang-analyzer-*'
+Checks:          '*,-llvmlibc-restrict-system-libc-headers,-llvmlibc-callee-namespace'
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
