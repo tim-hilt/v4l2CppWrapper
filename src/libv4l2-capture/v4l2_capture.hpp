@@ -16,10 +16,15 @@ void openVideoDevice();
 void closeVideoDevice();
 
 /**
- * @brief Send ioctl commands to the display driver
+ * @brief Meta ioctl-wrapper, that retries the operation, if the system call was
+ *        interrupted
  *
+ * @param fh File handle on which to act
+ * @param request ioctl command to execute
+ * @param arg data-structure to read/write on
+ * @return int whether or not execution was successful
  */
-void ioctl();
+static int xioctl(int fh, int request, void *arg);
 
 /**
  * @brief Memory map a driver-allocated buffer to userspace
