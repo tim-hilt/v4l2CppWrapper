@@ -3,7 +3,35 @@
 
 namespace v4l2Capture {
 
-void say_hello();
+/**
+ * @brief Opens a video device
+ *
+ */
+void openVideoDevice();
+
+/**
+ * @brief Closes a video device
+ *
+ */
+void closeVideoDevice();
+
+/**
+ * @brief Send ioctl commands to the display driver
+ *
+ */
+void ioctl();
+
+/**
+ * @brief Memory map a driver-allocated buffer to userspace
+ *
+ */
+void mmap();
+
+/**
+ * @brief Read frame from video device
+ *
+ */
+void readFrame();
 
 } // namespace v4l2Capture
 
