@@ -180,7 +180,7 @@ auto v4l2Capture::V4L2Capturer::init(uint16_t width, uint16_t height,
 }
 
 auto v4l2Capture::V4L2Capturer::handleCapture(
-    const std::function<void(buffer_addr)> &processImageCallback) const
+    const std::function<void(const buffer_addr &)> &processImageCallback) const
     -> int8_t {
   v4l2_buffer buf{};
   CLEAR(buf);

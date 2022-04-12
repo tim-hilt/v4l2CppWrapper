@@ -134,8 +134,8 @@ class V4L2Capturer {
    * @return int8_t 0 if no errors occured
    */
   [[nodiscard("Error value must be obtained")]] auto handleCapture(
-      const std::function<void(buffer_addr)> &processImageCallback) const
-      -> int8_t;
+      const std::function<void(const buffer_addr &)> &processImageCallback)
+      const -> int8_t;
 };
 
 }  // namespace v4l2Capture

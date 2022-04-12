@@ -1,3 +1,5 @@
+#include <chrono>
+#include <cstdint>
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -6,12 +8,31 @@
 #define DEV_NAME "/dev/video4"
 #define WIDTH 1920
 #define HEIGHT 1080
+#define MILLIS_IN_SECOND 1000
 
-void imageToFile(buffer_addr buf_addr) {
+void imageToFile(const buffer_addr &buf_addr) {
   auto file = std::fstream("test.yuy", std::ios::out | std::ios::binary);
   file.write(static_cast<char *>(buf_addr.start), buf_addr.length);
   file.close();
 }
+
+void calcFps([[maybe_unused]] const buffer_addr &buf_addr) {
+  static uint32_t i{0};
+  static auto t_start = std::chrono::high_resolution_clock::now();
+  static auto t_end = std::chrono::high_resolution_clock::now();
+
+  ++i;
+  double elapsed_time_ms =
+      std::chrono::duration<double, std::milli>(t_end - t_start).count();
+
+  if (elapsed_time_ms >= MILLIS_IN_SECOND) {
+    std::cout << i << "\n";
+    i = 0;
+    t_start = std::chrono::high_resolution_clock::now();
+  }
+}
+
+void nop([[maybe_unused]] const buffer_addr &buf_addr) {}
 
 auto main() -> int {
   // auto capturer = v4l2Capture::V4L2Capturer(DEV_NAME, WIDTH, HEIGHT);
@@ -22,7 +43,7 @@ auto main() -> int {
   }
 
   while (true) {
-    if (capturer.handleCapture([](buffer_addr base) {}) != 0) {
+    if (capturer.handleCapture(calcFps) != 0) {
       return EXIT_FAILURE;
     }
   }
