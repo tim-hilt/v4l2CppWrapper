@@ -1,5 +1,5 @@
 ---
-Checks:          '*,-llvmlibc-restrict-system-libc-headers,-llvmlibc-callee-namespace,-llvmlibc-implementation-in-namespace,-fuchsia-default-arguments-calls,-altera-unroll-loops,-fuchsia-trailing-return,-hicpp-signed-bitwise,-altera-id-dependent-backward-branch'
+Checks:          '*,-llvmlibc-restrict-system-libc-headers,-llvmlibc-callee-namespace,-llvmlibc-implementation-in-namespace,-fuchsia-default-arguments-calls,-altera-unroll-loops,-fuchsia-trailing-return,-hicpp-signed-bitwise,-altera-id-dependent-backward-branch,-google-readability-todo,-fuchsia-default-arguments-declarations,-altera-struct-pack-align,-hicpp-special-member-functions,-cppcoreguidelines-special-member-functions'
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false

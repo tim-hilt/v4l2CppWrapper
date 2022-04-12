@@ -1,34 +1,32 @@
 #include "v4l2_capture.hpp"
 
-#include <asm-generic/errno-base.h>
 #include <fcntl.h>
 #include <linux/videodev2.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#include <sys/types.h>
 #include <unistd.h>
 
-#include <cerrno>
-#include <cstddef>
-#include <cstdint>
-#include <cstdlib>
 #include <cstring>
-#include <iomanip>
 #include <iostream>
-#include <memory>
 
 #include "utils.hpp"
 
+// TODO: Can this be implemented in Code instead of in a macro?
 #define CLEAR(x) memset(&x, 0, sizeof(x))
+
+#define BUFCOUNT 4
+#define BUFCOUNT_MIN BUFCOUNT - 1
 
 /*
  * IDEAS ON HOW TO IMPROVE
  * - Add cli-interface
  * - Let user select options interactively by querying possible parameters
+ * - Add map [int8_t errorCode]std::string errorMsg
  */
 
-auto v4l2Capture::V4L2Capturer::setFormat() const -> int {
-  struct v4l2_format fmt {};
+auto v4l2Capture::V4L2Capturer::setFormat(uint16_t width, uint16_t height,
+                                          uint32_t pixformat) const -> int8_t {
+  v4l2_format fmt{};
   CLEAR(fmt);
 
   fmt.fmt.pix.width = width;
@@ -37,20 +35,19 @@ auto v4l2Capture::V4L2Capturer::setFormat() const -> int {
   fmt.fmt.pix.sizeimage = fmt.fmt.pix.bytesperline * fmt.fmt.pix.height;
   fmt.fmt.pix.colorspace = V4L2_COLORSPACE_DEFAULT;
   fmt.fmt.pix.field = V4L2_FIELD_ANY;
-  fmt.fmt.pix.pixelformat = PIXFMT;
+  fmt.fmt.pix.pixelformat = pixformat;
   fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
   if (-1 == xioctl(VIDIOC_S_FMT, &fmt)) {
     std::cerr << "Setting format failed\n";
-    return -1;  // TODO: Define map [error-code]error-message and return
-                // accordingly
+    return -1;
   }
 
   return 0;
 }
 
-auto v4l2Capture::V4L2Capturer::requestBuffers() -> int {
-  struct v4l2_requestbuffers req {};
+auto v4l2Capture::V4L2Capturer::requestBuffers() -> int8_t {
+  v4l2_requestbuffers req{};
   CLEAR(req);
 
   req.count = BUFCOUNT;
@@ -76,7 +73,7 @@ auto v4l2Capture::V4L2Capturer::requestBuffers() -> int {
   }
 
   for (size_t i = 0; i < req.count; ++i) {
-    struct v4l2_buffer buf {};
+    v4l2_buffer buf{};
     CLEAR(buf);
 
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -89,6 +86,7 @@ auto v4l2Capture::V4L2Capturer::requestBuffers() -> int {
     }
 
     buf_addr.at(i).length = buf.length;
+    // TODO: Does this produce a memory leak? I don't unmap anything
     buf_addr.at(i).start = mmap(nullptr, buf.length, PROT_READ | PROT_WRITE,
                                 MAP_SHARED, fd, buf.m.offset);
 
@@ -100,9 +98,36 @@ auto v4l2Capture::V4L2Capturer::requestBuffers() -> int {
   return 0;
 }
 
+auto v4l2Capture::V4L2Capturer::enqueuePrimeBuffers() const -> int8_t {
+  for (size_t i = 0; i < BUFCOUNT; ++i) {
+    v4l2_buffer buf{};
+    CLEAR(buf);
+
+    buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    buf.memory = V4L2_MEMORY_MMAP;
+    buf.index = i;
+
+    if (-1 == xioctl(VIDIOC_QBUF, &buf)) {
+      std::cerr << "VIDIOC_QBUF\n";
+      return -1;
+    }
+  }
+  return 0;
+}
+
+auto v4l2Capture::V4L2Capturer::enableStreaming() const -> int8_t {
+  int a = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+  if (-1 == xioctl(VIDIOC_STREAMON, &a)) {
+    std::cerr << "VIDIOC_STREAMON\n";
+    return -1;
+  }
+  return 0;
+}
+
 auto v4l2Capture::V4L2Capturer::xioctl(uint32_t request, void *arg) const
-    -> int {
-  int r = 0;
+    -> int8_t {
+  int8_t r = 0;
   do {
     r = ioctl(fd, request, arg);
   } while (-1 == r && EINTR == errno);
@@ -114,13 +139,10 @@ v4l2Capture::V4L2Capturer::V4L2Capturer() = default;
 v4l2Capture::V4L2Capturer::V4L2Capturer(std::string devName)
     : devName(std::move(devName)) {}
 
-v4l2Capture::V4L2Capturer::V4L2Capturer(std::string devName, unsigned int width,
-                                        unsigned int height)
-    : devName(std::move(devName)), width(width), height(height) {}
-
 v4l2Capture::V4L2Capturer::~V4L2Capturer() { close(fd); }
 
-auto v4l2Capture::V4L2Capturer::init() -> int {
+auto v4l2Capture::V4L2Capturer::init(uint16_t width, uint16_t height,
+                                     uint32_t pixformat) -> int8_t {
   fd = open(devName.c_str(), O_RDWR);
 
   if (fd == -1) {
@@ -130,7 +152,25 @@ auto v4l2Capture::V4L2Capturer::init() -> int {
 
   std::cout << "File handle to capture device: " << fd << "\n";
 
-  int err = setFormat();
+  int8_t err = setFormat(width, height, pixformat);
+
+  if (err != 0) {
+    return err;
+  }
+
+  err = requestBuffers();
+
+  if (err != 0) {
+    return err;
+  }
+
+  err = enqueuePrimeBuffers();
+
+  if (err != 0) {
+    return err;
+  }
+
+  err = enableStreaming();
 
   if (err != 0) {
     return err;
@@ -139,4 +179,39 @@ auto v4l2Capture::V4L2Capturer::init() -> int {
   return 0;
 }
 
-void v4l2Capture::V4L2Capturer::readFrame() { std::cout << "read frame\n"; }
+auto v4l2Capture::V4L2Capturer::handleCapture(
+    const std::function<void(buffer_addr)> &processImageCallback) const
+    -> int8_t {
+  v4l2_buffer buf{};
+  CLEAR(buf);
+
+  buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  buf.memory = V4L2_MEMORY_MMAP;
+
+  if (-1 == xioctl(VIDIOC_DQBUF, &buf)) {
+    switch (errno) {
+      case EAGAIN:
+        std::cerr << "EAGAIN\n";
+        return -1;
+      case EIO:
+        [[fallthrough]];
+      default:
+        std::cerr << "VIDIOC_DQBUF\n";
+        return -1;
+    }
+  }
+
+  if (!(buf.index < BUFCOUNT)) {
+    std::cerr << "buf.index >= BUFCOUNT:" << buf.index << "\n";
+    return -1;
+  }
+
+  processImageCallback(buf_addr.at(buf.index));
+
+  if (-1 == xioctl(VIDIOC_QBUF, &buf)) {
+    std::cerr << "VIDIOC_QBUF\n";
+    return -1;
+  }
+
+  return 0;
+}

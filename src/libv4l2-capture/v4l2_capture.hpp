@@ -6,16 +6,25 @@
 
 #include <cstdint>
 #include <fstream>
+#include <functional>
 #include <string>
 #include <vector>
 
+#define DEVICE "/dev/video0"
+#define BUFCOUNT 4
+
 #define DEFAULT_WIDTH 1280
 #define DEFAULT_HEIGHT 720
+#define DEFAULT_PIXFORMAT V4L2_PIX_FMT_YUYV
 
+/**
+ * @brief Embedded struct, used to save buffer-state
+ *
+ */
 struct buffer_addr {
   void *start;
   size_t length;
-} __attribute__((aligned(16)));
+};
 
 namespace v4l2Capture {
 
@@ -24,7 +33,7 @@ class V4L2Capturer {
    * @brief name of device on which to capture
    *
    */
-  std::string devName{"/dev/video0"};
+  std::string devName{DEVICE};
 
   /**
    * @brief File descriptor of video-device. I have to
@@ -32,43 +41,41 @@ class V4L2Capturer {
    */
   int32_t fd{-1};
 
-  /**
-   * @brief Width of capture
-   *
-   */
-  uint32_t width{DEFAULT_WIDTH};
-
-  /**
-   * @brief Heigth of capture
-   *
-   */
-  uint32_t height{DEFAULT_HEIGHT};
-
-  /**
-   * @brief File-format of capture
-   *
-   */
-  static const unsigned int PIXFMT = V4L2_PIX_FMT_YUYV;
-
-  static const unsigned int BUFCOUNT = 4;
-
-  static const unsigned int BUFCOUNT_MIN = 3;
-
-  std::vector<buffer_addr> buf_addr{BUFCOUNT};
+  std::vector<buffer_addr> buf_addr = std::vector<buffer_addr>(BUFCOUNT);
 
   /**
    * @brief Set capture format
    *
-   * @return int 0 if no error occured
+   * @param width of capture
+   * @param height of capture
+   * @param pixformat of capture
+   * @return int8_t 0 if no error occured
    */
-  [[nodiscard("Error value must be obtained")]] auto setFormat() const -> int;
+  [[nodiscard("Error value must be obtained")]] auto setFormat(
+      uint16_t width, uint16_t height, uint32_t pixformat) const -> int8_t;
 
   /**
    * @brief Request buffers to enqueue
    *
    * @return int 0 if no errors occured
    */
-  [[nodiscard("Error value must be obtained")]] auto requestBuffers() -> int;
+  [[nodiscard("Error value must be obtained")]] auto requestBuffers() -> int8_t;
+
+  /**
+   * @brief Enqueue buffers
+   *
+   * @return int8_t 0 if no errors occured
+   */
+  [[nodiscard("Error value must be obtained")]] auto enqueuePrimeBuffers() const
+      -> int8_t;
+
+  /**
+   * @brief Enable streaming
+   *
+   * @return int8_t 0 if no errors occured
+   */
+  [[nodiscard("Error value must be obtained")]] auto enableStreaming() const
+      -> int8_t;
 
   /**
    * @brief Meta ioctl-wrapper, that retries the operation, if the system call
@@ -80,7 +87,7 @@ class V4L2Capturer {
    */
   [[nodiscard("Error value must be obtained")]] auto xioctl(uint32_t request,
                                                             void *arg) const
-      -> int;
+      -> int8_t;
 
  public:
   /**
@@ -97,16 +104,6 @@ class V4L2Capturer {
   explicit V4L2Capturer(std::string devName);
 
   /**
-   * @brief Construct a new V4L2Capturer object
-   *
-   * @param devName Name of the device used for capturing
-   * @param width Width of the capture
-   * @param height Height of the capture
-   */
-  explicit V4L2Capturer(std::string devName, unsigned int width,
-                        unsigned int height);
-
-  /**
    * @brief Destroy the V4L2Capturer object
    *
    */
@@ -117,13 +114,28 @@ class V4L2Capturer {
    *
    * @return int 0 if no error
    */
-  [[nodiscard("Error value must be obtained")]] auto init() -> int;
 
   /**
-   * @brief Read frame from video device
+   * @brief Initializes capture-device
    *
+   * @param width of capture
+   * @param height of capture
+   * @param pixformat of capture
+   * @return int8_t 0 if no error
    */
-  [[noreturn]] void readFrame();
+  [[nodiscard("Error value must be obtained")]] auto init(
+      uint16_t width = DEFAULT_WIDTH, uint16_t height = DEFAULT_HEIGHT,
+      uint32_t pixformat = DEFAULT_PIXFORMAT) -> int8_t;
+
+  /**
+   * @brief Dequeue buffers, handle Capture and Re-enqueue buffer
+   *
+   * @param processImageCallback
+   * @return int8_t 0 if no errors occured
+   */
+  [[nodiscard("Error value must be obtained")]] auto handleCapture(
+      const std::function<void(buffer_addr)> &processImageCallback) const
+      -> int8_t;
 };
 
 }  // namespace v4l2Capture
