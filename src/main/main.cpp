@@ -5,9 +5,10 @@
 #include <string>
 #include <v4l2_capture.hpp>
 
-#define DEV_NAME "/dev/video4"
-#define WIDTH 1920
-#define HEIGHT 1080
+#define DEVNAME_EXTERNAL "/dev/video4"
+#define WIDTH_EXTERNAL 1920
+#define HEIGHT_EXTERNAL 1080
+
 #define MILLIS_IN_SECOND 1000
 
 void imageToFile(const buffer_addr &buf_addr) {
@@ -22,6 +23,7 @@ void calcFps([[maybe_unused]] const buffer_addr &buf_addr) {
   static auto t_end = std::chrono::high_resolution_clock::now();
 
   ++i;
+  t_end = std::chrono::high_resolution_clock::now();
   double elapsed_time_ms =
       std::chrono::duration<double, std::milli>(t_end - t_start).count();
 
@@ -35,7 +37,8 @@ void calcFps([[maybe_unused]] const buffer_addr &buf_addr) {
 void nop([[maybe_unused]] const buffer_addr &buf_addr) {}
 
 auto main() -> int {
-  // auto capturer = v4l2Capture::V4L2Capturer(DEV_NAME, WIDTH, HEIGHT);
+  // INFO: Use this when external camera is available
+  // auto capturer = v4l2Capture::V4L2Capturer(DEV_NAME);
   v4l2Capture::V4L2Capturer capturer;
 
   if (capturer.init() != 0) {

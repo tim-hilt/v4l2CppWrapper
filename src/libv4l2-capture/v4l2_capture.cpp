@@ -150,8 +150,6 @@ auto v4l2Capture::V4L2Capturer::init(uint16_t width, uint16_t height,
     return -1;
   }
 
-  std::cout << "File handle to capture device: " << fd << "\n";
-
   int8_t err = setFormat(width, height, pixformat);
 
   if (err != 0) {
