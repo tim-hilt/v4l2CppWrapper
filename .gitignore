@@ -11,6 +11,7 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 .cmake
+CMakeUserPresets.json
 
 # Ninja
 .ninja_deps
