@@ -6,16 +6,15 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+#include <cerrno>
+#include <cstdint>
 #include <cstring>
 #include <iostream>
-
-#include "utils.hpp"
+#include <memory>
+#include <utility>
 
 // TODO: Can this be implemented in Code instead of in a macro?
-#define CLEAR(x) memset(&x, 0, sizeof(x))
-
-#define BUFCOUNT 4
-#define BUFCOUNT_MIN BUFCOUNT - 1
+#define CLEAR(x) memset(&(x), 0, sizeof(x))
 
 /*
  * IDEAS ON HOW TO IMPROVE

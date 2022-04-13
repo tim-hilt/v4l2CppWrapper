@@ -2,10 +2,23 @@
 cmake_minimum_required(VERSION 3.23)
 project(v4l2-capture VERSION 0.1.0)
 
-# Exports compile_commands.json to help clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Include what you use optimizes includes
 set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE include-what-you-use)
+
+set(CMAKE_CXX_CLANG_TIDY clang-tidy)
+
+set(CMAKE_CXX_CPPCHECK cppcheck --std=c++17)
+
+set(CMAKE_CXX_CPPLINT cpplint)
+
+set(CMAKE_LINK_WHAT_YOU_USE ON)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wshadow -Weverything -Werror")
 
 add_subdirectory(src)

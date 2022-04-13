@@ -1,6 +1,7 @@
 #ifndef UTILS_INCLUDED
 #define UTILS_INCLUDED
 
+#include <cstdint>
 #include <string>
 
 namespace utils {

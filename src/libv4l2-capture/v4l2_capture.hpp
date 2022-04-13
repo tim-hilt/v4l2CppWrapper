@@ -5,17 +5,18 @@
 #include <sys/types.h>
 
 #include <cstdint>
-#include <fstream>
 #include <functional>
 #include <string>
+#include <string_view>
 #include <vector>
 
-#define DEVICE "/dev/video0"
-#define BUFCOUNT 4
+constexpr std::string_view DEVICE{"/dev/video0"};
+constexpr uint8_t BUFCOUNT{4};
+constexpr uint8_t BUFCOUNT_MIN{BUFCOUNT - 1};
 
-#define DEFAULT_WIDTH 1280
-#define DEFAULT_HEIGHT 720
-#define DEFAULT_PIXFORMAT V4L2_PIX_FMT_YUYV
+constexpr uint16_t DEFAULT_WIDTH{1280};
+constexpr uint16_t DEFAULT_HEIGHT{720};
+constexpr uint32_t DEFAULT_PIXFORMAT{V4L2_PIX_FMT_YUYV};
 
 /**
  * @brief Embedded struct, used to save buffer-state

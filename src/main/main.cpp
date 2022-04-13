@@ -1,15 +1,17 @@
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
-#include <string>
+#include <ratio>
+#include <string_view>
 #include <v4l2_capture.hpp>
 
-#define DEVNAME_EXTERNAL "/dev/video4"
-#define WIDTH_EXTERNAL 1920
-#define HEIGHT_EXTERNAL 1080
+constexpr std::string_view DEVNAME_EXTERNAL{"/dev/video4"};
+constexpr uint16_t WIDTH_EXTERNAL{1920};
+constexpr uint16_t HEIGHT_EXTERNAL{1080};
 
-#define MILLIS_IN_SECOND 1000
+constexpr uint16_t MILLIS_IN_SECOND{1000};
 
 void imageToFile(const buffer_addr &buf_addr) {
   auto file = std::fstream("test.yuy", std::ios::out | std::ios::binary);
