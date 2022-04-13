@@ -15,7 +15,7 @@ constexpr uint16_t MILLIS_IN_SECOND{1000};
 
 void imageToFile(const buffer_addr &buf_addr) {
   auto file = std::fstream("test.yuy", std::ios::out | std::ios::binary);
-  file.write(static_cast<char *>(buf_addr.start), buf_addr.length);
+  file.write(buf_addr.start, buf_addr.length);
   file.close();
 }
 
@@ -41,9 +41,9 @@ void nop([[maybe_unused]] const buffer_addr &buf_addr) {}
 auto main() -> int {
   // INFO: Use this when external camera is available
   // auto capturer = v4l2Capture::V4L2Capturer(DEV_NAME);
-  v4l2Capture::V4L2Capturer capturer;
+  v4l2Capture::V4L2Capturer capturer{DEVNAME_EXTERNAL.data()};
 
-  if (capturer.init() != 0) {
+  if (capturer.init(WIDTH_EXTERNAL, HEIGHT_EXTERNAL) != 0) {
     return EXIT_FAILURE;
   }
 

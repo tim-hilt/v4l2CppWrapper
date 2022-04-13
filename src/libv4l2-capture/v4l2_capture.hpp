@@ -4,9 +4,10 @@
 #include <linux/videodev2.h>
 #include <sys/types.h>
 
+#include <cerrno>
 #include <cstdint>
-#include <functional>
-#include <string>
+#include <cstring>
+#include <iostream>
 #include <string_view>
 #include <vector>
 
@@ -23,9 +24,16 @@ constexpr uint32_t DEFAULT_PIXFORMAT{V4L2_PIX_FMT_YUYV};
  *
  */
 struct buffer_addr {
-  void *start;
+  char *start;  // changed from void*
   size_t length;
 };
+
+namespace util {
+template <typename Resource>
+static void clear(Resource &x) {
+  memset(&(x), 0, sizeof(x));
+}
+}  // namespace util
 
 namespace v4l2Capture {
 
@@ -134,9 +142,42 @@ class V4L2Capturer {
    * @param processImageCallback
    * @return int8_t 0 if no errors occured
    */
+  template <typename Callable>
   [[nodiscard("Error value must be obtained")]] auto handleCapture(
-      const std::function<void(const buffer_addr &)> &processImageCallback)
-      const -> int8_t;
+      Callable &&processImageCallback) const -> int8_t {
+    v4l2_buffer buf{};
+    util::clear(buf);
+
+    buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    buf.memory = V4L2_MEMORY_MMAP;
+
+    if (-1 == xioctl(VIDIOC_DQBUF, &buf)) {
+      switch (errno) {
+        case EAGAIN:
+          std::cerr << "EAGAIN\n";
+          return -1;
+        case EIO:
+          [[fallthrough]];
+        default:
+          std::cerr << "VIDIOC_DQBUF\n";
+          return -1;
+      }
+    }
+
+    if (!(buf.index < BUFCOUNT)) {
+      std::cerr << "buf.index >= BUFCOUNT:" << buf.index << "\n";
+      return -1;
+    }
+
+    processImageCallback(buf_addr.at(buf.index));
+
+    if (-1 == xioctl(VIDIOC_QBUF, &buf)) {
+      std::cerr << "VIDIOC_QBUF\n";
+      return -1;
+    }
+
+    return 0;
+  }
 };
 
 }  // namespace v4l2Capture

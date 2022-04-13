@@ -10,11 +10,7 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
-#include <memory>
 #include <utility>
-
-// TODO: Can this be implemented in Code instead of in a macro?
-#define CLEAR(x) memset(&(x), 0, sizeof(x))
 
 /*
  * IDEAS ON HOW TO IMPROVE
@@ -26,7 +22,7 @@
 auto v4l2Capture::V4L2Capturer::setFormat(uint16_t width, uint16_t height,
                                           uint32_t pixformat) const -> int8_t {
   v4l2_format fmt{};
-  CLEAR(fmt);
+  util::clear(fmt);
 
   fmt.fmt.pix.width = width;
   fmt.fmt.pix.height = height;
@@ -47,7 +43,7 @@ auto v4l2Capture::V4L2Capturer::setFormat(uint16_t width, uint16_t height,
 
 auto v4l2Capture::V4L2Capturer::requestBuffers() -> int8_t {
   v4l2_requestbuffers req{};
-  CLEAR(req);
+  util::clear(req);
 
   req.count = BUFCOUNT;
   req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -73,7 +69,7 @@ auto v4l2Capture::V4L2Capturer::requestBuffers() -> int8_t {
 
   for (size_t i = 0; i < req.count; ++i) {
     v4l2_buffer buf{};
-    CLEAR(buf);
+    util::clear(buf);
 
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buf.memory = V4L2_MEMORY_MMAP;
@@ -85,9 +81,10 @@ auto v4l2Capture::V4L2Capturer::requestBuffers() -> int8_t {
     }
 
     buf_addr.at(i).length = buf.length;
-    // TODO: Does this produce a memory leak? I don't unmap anything
-    buf_addr.at(i).start = mmap(nullptr, buf.length, PROT_READ | PROT_WRITE,
-                                MAP_SHARED, fd, buf.m.offset);
+    // TODO: Does this produce a memory leak? I don't unmap anything -> yes!
+    buf_addr.at(i).start =
+        static_cast<char *>(mmap(nullptr, buf.length, PROT_READ | PROT_WRITE,
+                                 MAP_SHARED, fd, buf.m.offset));
 
     if (MAP_FAILED == buf_addr.at(i).start) {
       std::cerr << "mmap\n";
@@ -100,7 +97,7 @@ auto v4l2Capture::V4L2Capturer::requestBuffers() -> int8_t {
 auto v4l2Capture::V4L2Capturer::enqueuePrimeBuffers() const -> int8_t {
   for (size_t i = 0; i < BUFCOUNT; ++i) {
     v4l2_buffer buf{};
-    CLEAR(buf);
+    util::clear(buf);
 
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buf.memory = V4L2_MEMORY_MMAP;
@@ -171,43 +168,6 @@ auto v4l2Capture::V4L2Capturer::init(uint16_t width, uint16_t height,
 
   if (err != 0) {
     return err;
-  }
-
-  return 0;
-}
-
-auto v4l2Capture::V4L2Capturer::handleCapture(
-    const std::function<void(const buffer_addr &)> &processImageCallback) const
-    -> int8_t {
-  v4l2_buffer buf{};
-  CLEAR(buf);
-
-  buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  buf.memory = V4L2_MEMORY_MMAP;
-
-  if (-1 == xioctl(VIDIOC_DQBUF, &buf)) {
-    switch (errno) {
-      case EAGAIN:
-        std::cerr << "EAGAIN\n";
-        return -1;
-      case EIO:
-        [[fallthrough]];
-      default:
-        std::cerr << "VIDIOC_DQBUF\n";
-        return -1;
-    }
-  }
-
-  if (!(buf.index < BUFCOUNT)) {
-    std::cerr << "buf.index >= BUFCOUNT:" << buf.index << "\n";
-    return -1;
-  }
-
-  processImageCallback(buf_addr.at(buf.index));
-
-  if (-1 == xioctl(VIDIOC_QBUF, &buf)) {
-    std::cerr << "VIDIOC_QBUF\n";
-    return -1;
   }
 
   return 0;
