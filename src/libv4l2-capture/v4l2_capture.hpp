@@ -30,7 +30,7 @@ struct buffer_addr {
 
 namespace util {
 template <typename Resource>
-static void clear(Resource &x) {
+void clear(Resource &x) {
   memset(&(x), 0, sizeof(x));
 }
 }  // namespace util
@@ -50,6 +50,10 @@ class V4L2Capturer {
    */
   int32_t fd{-1};
 
+  /**
+   * @brief TODO:
+   *
+   */
   std::vector<buffer_addr> buf_addr = std::vector<buffer_addr>(BUFCOUNT);
 
   /**
@@ -144,40 +148,7 @@ class V4L2Capturer {
    */
   template <typename Callable>
   [[nodiscard("Error value must be obtained")]] auto handleCapture(
-      Callable &&processImageCallback) const -> int8_t {
-    v4l2_buffer buf{};
-    util::clear(buf);
-
-    buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    buf.memory = V4L2_MEMORY_MMAP;
-
-    if (-1 == xioctl(VIDIOC_DQBUF, &buf)) {
-      switch (errno) {
-        case EAGAIN:
-          std::cerr << "EAGAIN\n";
-          return -1;
-        case EIO:
-          [[fallthrough]];
-        default:
-          std::cerr << "VIDIOC_DQBUF\n";
-          return -1;
-      }
-    }
-
-    if (!(buf.index < BUFCOUNT)) {
-      std::cerr << "buf.index >= BUFCOUNT:" << buf.index << "\n";
-      return -1;
-    }
-
-    processImageCallback(buf_addr.at(buf.index));
-
-    if (-1 == xioctl(VIDIOC_QBUF, &buf)) {
-      std::cerr << "VIDIOC_QBUF\n";
-      return -1;
-    }
-
-    return 0;
-  }
+      Callable &&processImageCallback) const -> int8_t;
 };
 
 }  // namespace v4l2Capture
