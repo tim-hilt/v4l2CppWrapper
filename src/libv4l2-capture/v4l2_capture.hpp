@@ -2,12 +2,12 @@
 #define V4L2_CAPTURE_INCLUDED
 
 #include <linux/videodev2.h>
-#include <sys/types.h>
 
 #include <cerrno>
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <string>
 #include <string_view>
 #include <vector>
 

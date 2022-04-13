@@ -17,6 +17,9 @@ CMakeUserPresets.json
 .ninja_deps
 .ninja_log
 build.ninja
+build-Debug.ninja
+build-Release.ninja
+build-RelWithDebInfo.ninja
 
 # Lib and binaries
 v4l2-capture

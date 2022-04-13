@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <ratio>
+#include <string>
 #include <string_view>
 #include <v4l2_capture.hpp>
 
