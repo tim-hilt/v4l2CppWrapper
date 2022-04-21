@@ -1,0 +1,11 @@
+{
+  "name": "v4l2-wrapper",
+  "version": "0.1.0",
+  "description": "Small and naive wrapper around the Linux kernels Video for Linux API",
+  "dependencies": [
+    {
+      "name": "spdlog",
+      "version>=": "1.9.2"
+    }
+  ]
+}
