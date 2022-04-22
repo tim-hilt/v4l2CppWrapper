@@ -2,8 +2,6 @@
 cmake_minimum_required(VERSION 3.23)
 project(v4l2-capture LANGUAGES CXX VERSION 0.1.0)
 
-# set(CMAKE_TOOLCHAIN_FILE /home/tim/dev/vcpkg/scripts/buildsystems/vcpkg.cmake)
-
 find_package(spdlog REQUIRED)
 
 set(CMAKE_GENERATOR "Ninja Multi-Config")
@@ -16,13 +14,13 @@ set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE include-what-you-use)
 
 set(CMAKE_CXX_CLANG_TIDY clang-tidy)
 
-set(CMAKE_CXX_CPPCHECK cppcheck --std=c++17)
+set(CMAKE_CXX_CPPCHECK cppcheck --std=c++20)
 
 set(CMAKE_CXX_CPPLINT cpplint)
 
 set(CMAKE_LINK_WHAT_YOU_USE ON)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_CXX_EXTENSIONS OFF)

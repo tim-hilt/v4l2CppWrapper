@@ -1,0 +1,10 @@
+[
+    {
+        "name": "Clang 13.0.1 x86_64-pc-linux-gnu - vcpkg",
+        "compilers": {
+          "C": "/usr/bin/clang",
+          "CXX": "/usr/bin/clang++"
+        },
+        "toolchainFile": "/home/tim/dev/vcpkg/scripts/buildsystems/vcpkg.cmake"
+      }
+]
