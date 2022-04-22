@@ -2,9 +2,7 @@
   "name": "v4l2-wrapper",
   "version": "0.1.0",
   "description": "Small and naive wrapper around the Linux kernels Video for Linux API",
-  "dependencies": [
-    {
-      "name": "spdlog"
-    }
-  ]
+  "builtin-baseline": "2ac61f87f69f0484b8044f95ab274038fbaf7bdd",
+  "dependencies": ["spdlog"],
+  "overrides": [{ "name": "spdlog", "version": "1.9.2" }]
 }

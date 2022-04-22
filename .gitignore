@@ -27,3 +27,7 @@ libv4l2-capture-lib.a
 
 # clangd cache
 .cache
+
+# vcpkg
+vcpkg_installed/
+vcpkg-manifest-install.log
