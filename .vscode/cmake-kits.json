@@ -5,6 +5,6 @@
           "C": "/usr/bin/clang",
           "CXX": "/usr/bin/clang++"
         },
-        "toolchainFile": "/home/tim/dev/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        "toolchainFile": "~/dev/vcpkg/scripts/buildsystems/vcpkg.cmake"
       }
 ]
