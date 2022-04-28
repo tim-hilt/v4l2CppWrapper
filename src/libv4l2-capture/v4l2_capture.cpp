@@ -9,9 +9,10 @@
 #include <cerrno>
 #include <cstdint>
 #include <cstring>
-#include <iostream>
 #include <memory>
 #include <utility>
+
+#include "spdlog/spdlog.h"
 
 /*
  * IDEAS ON HOW TO IMPROVE
@@ -35,7 +36,7 @@ auto v4l2Capture::V4L2Capturer::setFormat(uint16_t width, uint16_t height,
   fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
   if (-1 == xioctl(VIDIOC_S_FMT, &fmt)) {
-    std::cerr << "Setting format failed\n";
+    spdlog::error("Setting format failed");
     return -1;
   }
 
@@ -52,15 +53,15 @@ auto v4l2Capture::V4L2Capturer::requestBuffers() -> int8_t {
 
   if (-1 == xioctl(VIDIOC_REQBUFS, &req)) {
     if (EINVAL == errno) {
-      std::cerr << devName << " does not support memory mapping\n";
+      spdlog::error("{} does not support memory mapping", devName);
       return -1;
     }
-    std::cerr << "VIDIOC_REQBUFS failed\n";
+    spdlog::error("VIDIOC_REQBUFS failed");
     return -1;
   }
 
   if (req.count < BUFCOUNT_MIN) {
-    std::cerr << "Insufficient buffer memory on " << devName << "\n";
+    spdlog::error("Insufficient buffer memory on {}", devName);
     return -1;
   }
 
@@ -77,7 +78,7 @@ auto v4l2Capture::V4L2Capturer::requestBuffers() -> int8_t {
     buf.index = i;
 
     if (-1 == xioctl(VIDIOC_QUERYBUF, &buf)) {
-      std::cerr << "VIDIOC_QUERYBUF\n";
+      spdlog::error("VIDIOC_QUERYBUF");
       return -1;
     }
 
@@ -88,7 +89,7 @@ auto v4l2Capture::V4L2Capturer::requestBuffers() -> int8_t {
                                  MAP_SHARED, fd, buf.m.offset));
 
     if (MAP_FAILED == buf_addr.at(i).start) {
-      std::cerr << "mmap\n";
+      spdlog::error("mmap");
       return -1;
     }
   }
@@ -105,7 +106,7 @@ auto v4l2Capture::V4L2Capturer::enqueuePrimeBuffers() const -> int8_t {
     buf.index = i;
 
     if (-1 == xioctl(VIDIOC_QBUF, &buf)) {
-      std::cerr << "VIDIOC_QBUF\n";
+      spdlog::error("VIDIOC_QBUF");
       return -1;
     }
   }
@@ -116,7 +117,7 @@ auto v4l2Capture::V4L2Capturer::enableStreaming() const -> int8_t {
   int a = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
   if (-1 == xioctl(VIDIOC_STREAMON, &a)) {
-    std::cerr << "VIDIOC_STREAMON\n";
+    spdlog::error("VIDIOC_STREAMON");
     return -1;
   }
   return 0;
@@ -143,7 +144,7 @@ auto v4l2Capture::V4L2Capturer::init(uint16_t width, uint16_t height,
   fd = open(devName.c_str(), O_RDWR);
 
   if (fd == -1) {
-    std::cerr << "Failed to open capture device " << devName << "\n";
+    spdlog::error("Failed to open capture device {}", devName);
     return -1;
   }
 
@@ -169,43 +170,6 @@ auto v4l2Capture::V4L2Capturer::init(uint16_t width, uint16_t height,
 
   if (err != 0) {
     return err;
-  }
-
-  return 0;
-}
-
-template <typename Callable>
-auto v4l2Capture::V4L2Capturer::handleCapture(
-    Callable &&processImageCallback) const -> int8_t {
-  v4l2_buffer buf{};
-  util::clear(buf);
-
-  buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  buf.memory = V4L2_MEMORY_MMAP;
-
-  if (-1 == xioctl(VIDIOC_DQBUF, &buf)) {
-    switch (errno) {
-      case EAGAIN:
-        std::cerr << "EAGAIN\n";
-        return -1;
-      case EIO:
-        [[fallthrough]];
-      default:
-        std::cerr << "VIDIOC_DQBUF\n";
-        return -1;
-    }
-  }
-
-  if (!(buf.index < BUFCOUNT)) {
-    std::cerr << "buf.index >= BUFCOUNT:" << buf.index << "\n";
-    return -1;
-  }
-
-  processImageCallback(buf_addr.at(buf.index));
-
-  if (-1 == xioctl(VIDIOC_QBUF, &buf)) {
-    std::cerr << "VIDIOC_QBUF\n";
-    return -1;
   }
 
   return 0;

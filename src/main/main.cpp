@@ -2,11 +2,12 @@
 #include <cstdint>
 #include <cstdlib>
 #include <fstream>
-#include <iostream>
 #include <ratio>
 #include <string>
 #include <string_view>
 #include <v4l2_capture.hpp>
+
+#include "spdlog/spdlog.h"
 
 constexpr std::string_view DEVNAME_EXTERNAL{"/dev/video4"};
 constexpr uint16_t WIDTH_EXTERNAL{1920};
@@ -31,7 +32,7 @@ void calcFps([[maybe_unused]] const buffer_addr &buf_addr) {
       std::chrono::duration<double, std::milli>(t_end - t_start).count();
 
   if (elapsed_time_ms >= MILLIS_IN_SECOND) {
-    std::cout << i << "\n";
+    spdlog::info("Current fps: {}", i);
     i = 0;
     t_start = std::chrono::high_resolution_clock::now();
   }
@@ -40,16 +41,15 @@ void calcFps([[maybe_unused]] const buffer_addr &buf_addr) {
 void nop([[maybe_unused]] const buffer_addr &buf_addr) {}
 
 auto main() -> int {
-  // INFO: Use this when external camera is available
-  // auto capturer = v4l2Capture::V4L2Capturer(DEV_NAME);
-  v4l2Capture::V4L2Capturer capturer{DEVNAME_EXTERNAL.data()};
+  // v4l2Capture::V4L2Capturer capturer{DEVNAME_EXTERNAL.data()};
+  v4l2Capture::V4L2Capturer capturer{};
 
-  if (capturer.init(WIDTH_EXTERNAL, HEIGHT_EXTERNAL) != 0) {
+  if (capturer.init(640, 480) != 0) {
     return EXIT_FAILURE;
   }
 
   while (true) {
-    if (capturer.handleCapture(calcFps) != 0) {
+    if (capturer.handleCapture(nop) != 0) {
       return EXIT_FAILURE;
     }
   }

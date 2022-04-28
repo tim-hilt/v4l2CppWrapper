@@ -11,6 +11,8 @@
 #include <string_view>
 #include <vector>
 
+#include "spdlog/spdlog.h"
+
 constexpr std::string_view DEVICE{"/dev/video0"};
 constexpr uint8_t BUFCOUNT{4};
 constexpr uint8_t BUFCOUNT_MIN{BUFCOUNT - 1};
@@ -147,8 +149,46 @@ class V4L2Capturer {
    * @return int8_t 0 if no errors occured
    */
   template <typename Callable>
-  [[nodiscard("Error value must be obtained")]] auto handleCapture(
-      Callable &&processImageCallback) const -> int8_t;
+  auto handleCapture(Callable &&processImageCallback) const -> int8_t {
+    static uint64_t i{0};
+
+    v4l2_buffer buf{};
+    util::clear(buf);
+
+    buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    buf.memory = V4L2_MEMORY_MMAP;
+
+    if (-1 == xioctl(VIDIOC_DQBUF, &buf)) {
+      switch (errno) {
+        case EAGAIN:
+          spdlog::error("EAGAIN");
+          return -1;
+        case EIO:
+          [[fallthrough]];
+        default:
+          spdlog::error("VIDIOC_DQBUF");
+          return -1;
+      }
+    }
+
+    if (!(buf.index < BUFCOUNT)) {
+      spdlog::error("buf.index >= BUFCOUNT: {}", buf.index);
+      return -1;
+    }
+
+    processImageCallback(buf_addr.at(buf.index));
+    spdlog::info("Processed image {}", i);
+
+    if (-1 == xioctl(VIDIOC_QBUF, &buf)) {
+      spdlog::error("VIDIOC_QBUF");
+      return -1;
+    }
+
+    spdlog::info("Re-enqueued buffer");
+    i++;
+
+    return 0;
+  }
 };
 
 }  // namespace v4l2Capture
