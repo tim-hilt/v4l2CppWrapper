@@ -1,8 +1,5 @@
-# Currently installed version
 cmake_minimum_required(VERSION 3.23)
 project(v4l2-capture LANGUAGES CXX VERSION 0.1.0)
-
-find_package(spdlog REQUIRED)
 
 set(CMAKE_GENERATOR "Ninja Multi-Config")
 
@@ -25,4 +22,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+find_package(spdlog REQUIRED)
+
+include(CTest)
+
 add_subdirectory(src)
+add_subdirectory(test)

@@ -41,10 +41,10 @@ void calcFps([[maybe_unused]] const buffer_addr &buf_addr) {
 void nop([[maybe_unused]] const buffer_addr &buf_addr) {}
 
 auto main() -> int {
-  // v4l2Capture::V4L2Capturer capturer{DEVNAME_EXTERNAL.data()};
-  v4l2Capture::V4L2Capturer capturer{};
+  v4l2Capture::V4L2Capturer capturer{DEVNAME_EXTERNAL.data()};
+  // v4l2Capture::V4L2Capturer capturer{};
 
-  if (capturer.init(640, 480) != 0) {
+  if (capturer.init(WIDTH_EXTERNAL, HEIGHT_EXTERNAL) != 0) {
     return EXIT_FAILURE;
   }
 

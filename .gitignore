@@ -31,3 +31,7 @@ libv4l2-capture-lib.a
 # vcpkg
 vcpkg_installed/
 vcpkg-manifest-install.log
+build/DartConfiguration.tcl
+build/test/tests
+build/test/tests_include-b12d07c.cmake
+build/test/tests_tests-b12d07c.cmake
