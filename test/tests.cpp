@@ -1,13 +1,9 @@
 #include <catch.hpp>
 #include <catch2/catch.hpp>
+#include <cstdint>
+#include <utils.hpp>
 #include <v4l2_capture.hpp>
 
-TEST_CASE("First test case", "[test]") {
-  REQUIRE(1 == 1);
-  REQUIRE(1 != 2);
-}
-
-TEST_CASE("Second test case", "[test]") {
-  REQUIRE(1 == 1);
-  REQUIRE(1 != 2);
+TEST_CASE("hex-formatting works as expected") {
+  REQUIRE(utils::formatHex(42) == "0x0000002a");
 }

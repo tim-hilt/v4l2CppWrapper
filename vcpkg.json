@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "description": "Small and naive wrapper around the Linux kernels Video for Linux API",
   "builtin-baseline": "2ac61f87f69f0484b8044f95ab274038fbaf7bdd",
-  "dependencies": ["spdlog", "catch2"],
+  "dependencies": ["spdlog", "catch2", "fmt"],
   "overrides": [
     { "name": "spdlog", "version": "1.9.2" },
-    { "name": "catch2", "version": "2.13.8" }
+    { "name": "catch2", "version": "2.13.8" },
+    { "name": "fmt", "version": "8.1.1" }
   ]
 }
